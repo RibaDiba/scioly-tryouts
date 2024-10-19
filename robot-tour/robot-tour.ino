@@ -166,6 +166,7 @@ void down() {
 
 void handleMovement(String movement[]) {
   for (int i = 0; i < 4; i++) {
+
     if (movement[i] == "left") {
       left();
     } else if (movement[i] == "right") {
@@ -175,6 +176,69 @@ void handleMovement(String movement[]) {
     } else if (movement[i] == "down") {
       down();
     }
+    
+    rotateToAdjust();
+  }
+}
+
+void rotateToAdjust() {
+  while (true) {
+    if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) {
+      mpu.dmpGetGravity(&gravity, &fifoBuffer[0]);
+      mpu.dmpGetYawPitchRoll(ypr, &gravity);
+
+      float yaw = ypr[0] * 180/M_PI;
+
+      if (abs(yaw) < 2.0) {
+        break;
+      } else if (yaw > 0) {
+        // Move motor FL forward
+        digitalWrite(FLMotorPin1, HIGH);
+        digitalWrite(FLMotorPin2, LOW);
+        analogWrite(FLMotorEn, 200);
+
+        // Move motor BR forward 
+        digitalWrite(BRMotorPin1, HIGH);
+        digitalWrite(BRMotorPin2, LOW);
+        analogWrite(BRMotorEn, 200);
+
+        // Move motor BL backward 
+        digitalWrite(BLMotorPin1, LOW);
+        digitalWrite(BLMotorPin2, HIGH);
+        analogWrite(BLMotorEn, 200);
+
+        // Move motor FR backward (reversed)
+        digitalWrite(FRMotorPin1, HIGH);
+        digitalWrite(FRMotorPin2, LOW);
+        analogWrite(FRMotorEn, 200);
+
+        // adjust this maybe
+        delay(50);
+      } else {
+        // Move motor FR forward (reversed)
+        digitalWrite(FRMotorPin1, LOW);
+        digitalWrite(FRMotorPin2, HIGH);
+        analogWrite(FRMotorEn, 200);
+
+        // Move motor BL forward 
+        digitalWrite(BLMotorPin1, HIGH);
+        digitalWrite(BLMotorPin2, LOW);
+        analogWrite(BLMotorEn, 200);
+
+        // Move motor FL backward
+        digitalWrite(FLMotorPin1, LOW);
+        digitalWrite(FLMotorPin2, HIGH);
+        analogWrite(FLMotorEn, 200);
+
+        // Move motor BR backward 
+        digitalWrite(BRMotorPin1, LOW);
+        digitalWrite(BRMotorPin2, HIGH);
+        analogWrite(BRMotorEn, 200);
+
+        // adjust this maybe
+        delay(50);
+      }
+    }
   }
 }
 
@@ -182,6 +246,23 @@ void handleMovement(String movement[]) {
 void setup() {
 
   Serial.begin(115200);
+
+  // Init motors
+  pinMode(FLMotorPin1, OUTPUT);
+  pinMode(FLMotorPin2, OUTPUT);
+  pinMode(FLMotorEn, OUTPUT);
+
+  pinMode(FRMotorPin1, OUTPUT);
+  pinMode(FRMotorPin2, OUTPUT);
+  pinMode(FRMotorEn, OUTPUT);
+
+  pinMode(BLMotorPin1, OUTPUT);
+  pinMode(BLMotorPin2, OUTPUT);
+  pinMode(BLMotorEn, OUTPUT);
+
+  pinMode(BRMotorPin1, OUTPUT);
+  pinMode(BRMotorPin2, OUTPUT);
+  pinMode(BRMotorEn, OUTPUT);
 
   // Init button
   pinMode(buttonPin, INPUT_PullUP);
